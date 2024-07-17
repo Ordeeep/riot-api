@@ -1,31 +1,36 @@
 const express = require('express');
 const axios = require('axios')
 const cors = require('cors');
-const fs = require('fs')
 const app = express();
+const language = require('./assets/api-json/language/pt_BR.json')
+
+
+const fs = require('fs')
+
 app.use(cors());
 
 require('dotenv').config();
-
+const LATEST_PATCH = process.env.LATEST_PATCH
 const PORT = process.env.PORT;
 const RIOT_API_KEY = process.env.RIOT_API_KEY;
 
 //Rota para conseguir icone de champion
-app.get('/:patch/championIcon/:championName', (req, res) => {
-   const { patch, championName } = req.params
-   res.sendFile(__dirname + `/assets/${patch}/img/champion/${championName}.png`);
+app.get('/championIcon/:championName', (req, res) => {
+   const championName = req.params.championName
+   console.log(championName)
+   res.sendFile(__dirname + `/assets/${LATEST_PATCH}/img/champion/${championName}.png`);
 })
 
 //Rota para conseguir icone de jogador
-app.get('/:patch/playerIcon/:playerIconID', (req, res) => {
-   const { patch, playerIconID } = req.params
+app.get(`/playerIcon/:playerIconID`, (req, res) => {
+   const playerIconID = req.params.playerIconID
    const errorToSearchImage = `${__dirname}/assets/img/error-img.png`
 
    if (!playerIconID) {
       return res.sendFile(errorToSearchImage)
    }
 
-   const imagePath = `${__dirname}/assets/${patch}/img/profileicon/${playerIconID}.png`
+   const imagePath = `${__dirname}/assets/${LATEST_PATCH}/img/profileicon/${playerIconID}.png`
    if (fs.existsSync(imagePath)) {
       res.sendFile(imagePath)
    } else {
@@ -34,69 +39,22 @@ app.get('/:patch/playerIcon/:playerIconID', (req, res) => {
 })
 
 //Rota para conseguir icone do elo
-app.get('/:patch/elo/:eloName', (req, res) => {
-   const { patch, eloName } = req.params
+app.get(`/elo/:eloName`, (req, res) => {
+   const eloName = req.params.eloName
+   console.log(eloName)
    const errorToSearchImage = `${__dirname}/assets/img/error-img.png`
    if (!eloName) {
       console.log(eloName)
       return res.sendFile(errorToSearchImage)
    }
-
-   let eloNames = {
-      ferro: {
-         id: 1,
-         name: 'IRON'
-      },
-      bronze: {
-         id: 2,
-         name: 'BRONZE'
-      },
-      prata: {
-         id: 3,
-         name: 'SILVER'
-      },
-      ouro: {
-         id: 4,
-         name: 'GOLD'
-      },
-      platina: {
-         id: 5,
-         name: 'PLATINUM'
-      },
-      esmeralda: {
-         id: 6,
-         name: 'EMERALD'
-      },
-      diamante: {
-         id: 7,
-         name: 'DIAMOND'
-      },
-      mestre: {
-         id: 8,
-         name: 'MASTER'
-      },
-      granMestre: {
-         id: 9,
-         name: 'GRANDMASTER'
-      },
-      desafiante: {
-         id: 10,
-         name: 'CHALLENGER'
-      },
-
-
-   }
-   for (let key in eloNames) {
-      if (eloName === eloNames[key].name) {
-         const imagePath = `${__dirname}/assets/${patch}/img/elo/${eloNames[key].id}.png`
-         if (fs.existsSync(imagePath)) {
-            res.sendFile(imagePath)
-         } else {
-            return res.sendFile(errorToSearchImage)
-         }
+   for (let searchElo in language[0].ranked.tier) {
+      if (language[0].ranked.tier[searchElo].translate === eloName) {
+         const imagePath = `${__dirname}/assets/${LATEST_PATCH}/img/elo/${searchElo}.png`
+         console.log(searchElo + ' ' + imagePath)
+         return res.sendFile(imagePath)
       }
    }
-
+  
 })
 
 app.get('/user/:gameName/:tagLine/:regionValue', async (req, res) => {
@@ -180,7 +138,7 @@ app.get('/user/:gameName/:tagLine/:regionValue', async (req, res) => {
    async function getUserMatchs() {
       try {
          //Essa variavel define quantas partidas serão buscadas.
-         let matchsCount = 20  
+         let matchsCount = 3
          //Consultando os id do json para indentificar o tipo da partida ex: Ranqueada, normal...
          const queueIdJson = require('./assets/api-json/queueId.json')
          const response = await axios.get(`https://americas.api.riotgames.com/lol/match/v5/matches/by-puuid/${userData.puuid}/ids?count=${matchsCount}`, {
@@ -198,10 +156,9 @@ app.get('/user/:gameName/:tagLine/:regionValue', async (req, res) => {
                   }
                });
 
-               //matchResponse.data.info.teste = 'oi'
-
 
                for (let key in matchResponse.data.info.participants) {
+                  
                   if (userData.puuid === matchResponse.data.info.participants[key].puuid) {
                      matchResponse.data.info.win = matchResponse.data.info.participants[key].win
                   }
@@ -234,9 +191,8 @@ app.get('/user/:gameName/:tagLine/:regionValue', async (req, res) => {
                "X-Riot-Token": RIOT_API_KEY
             }
          })
-
+         //console.log(response.data)
          response.data.forEach(item => {
-
             if (item.queueType == 'RANKED_SOLO_5x5') {
                userData.ranked.solo_duo = {
                   pdl: item.leaguePoints,
@@ -256,11 +212,30 @@ app.get('/user/:gameName/:tagLine/:regionValue', async (req, res) => {
                }
             }
          });
-         res.send(userData)
+
+         if(userData.ranked.flex.tier == 0){
+            userData.ranked.flex.tier = 'Unranked'
+         }
+         if(userData.ranked.solo_duo.tier == 0){
+            userData.ranked.solo_duo.tier = 'Unranked'
+         }
+         translateData()
       } catch (error) {
          return res.status(400).send('Erro ao consultar elo do jogador' + error)
       }
    }
+
+   function translateData() {
+      for (let searchElo in language[0].ranked.tier) {
+         if (language[0].ranked.tier[searchElo].tier_elo_name === userData.ranked.solo_duo.tier) {
+            userData.ranked.solo_duo.tier = language[0].ranked.tier[searchElo].translate
+         }
+         if (language[0].ranked.tier[searchElo].tier_elo_name === userData.ranked.flex.tier) {
+            userData.ranked.flex.tier = language[0].ranked.tier[searchElo].translate
+         }
+      }
+   }
+   return res.send(userData)
 });
 
 app.listen(PORT, (error) => {
