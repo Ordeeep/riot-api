@@ -41,10 +41,8 @@ app.get(`/playerIcon/:playerIconID`, (req, res) => {
 //Rota para conseguir icone do elo
 app.get(`/elo/:eloName`, (req, res) => {
    const eloName = req.params.eloName
-   console.log(eloName)
    const errorToSearchImage = `${__dirname}/assets/img/error-img.png`
    if (!eloName) {
-      console.log(eloName)
       return res.sendFile(errorToSearchImage)
    }
    for (let searchElo in language[0].ranked.tier) {
