@@ -4,27 +4,49 @@ const cors = require('cors');
 const app = express();
 const language = require('./assets/api-json/language/pt_BR.json')
 
-
 const fs = require('fs')
 
 app.use(cors());
-
 require('dotenv').config();
-const LATEST_PATCH = process.env.LATEST_PATCH
-const PORT = process.env.PORT;
-const RIOT_API_KEY = process.env.RIOT_API_KEY;
+
+//Declando váriveis de ambiente.
+const LATEST_PATCH = process.env.LATEST_PATCH //Patch do jogo ex: 14.14.1
+const PORT = process.env.PORT; //Porta que irá rodar a aplicação
+const RIOT_API_KEY = process.env.RIOT_API_KEY; //Api key que a riot disponibiliza.
+
+app.get('/itemIcon/:itemIconID', (req, res) => {
+   const itemIconID = req.params.itemIconID
+   const errorToSearchImage = `${__dirname}/assets/${LATEST_PATCH}/img/error-img.png`
+   if (!itemIconID) {
+      return res.sendFile(errorToSearchImage)
+   }
+   const imagePath = `${__dirname}/assets/${LATEST_PATCH}/img/item/${itemIconID}.png`
+   if(fs.existsSync(imagePath)){
+      return res.sendFile(imagePath)
+   }else{
+      return res.sendFile(errorToSearchImage)
+   }
+})
 
 //Rota para conseguir icone de champion
 app.get('/championIcon/:championName', (req, res) => {
    const championName = req.params.championName
-   console.log(championName)
-   res.sendFile(__dirname + `/assets/${LATEST_PATCH}/img/champion/${championName}.png`);
+   const errorToSearchImage = `${__dirname}/assets/${LATEST_PATCH}/img/error-img.png`
+   if (!championName) {
+      return res.sendFile(errorToSearchImage)
+   }
+   const imagePath = `${__dirname}/assets/${LATEST_PATCH}/img/champion/${championName}.png`
+   if(fs.existsSync(imagePath)){
+      return res.sendFile(imagePath)
+   }else{
+      return res.sendFile(errorToSearchImage)
+   }
 })
 
 //Rota para conseguir icone de jogador
 app.get(`/playerIcon/:playerIconID`, (req, res) => {
    const playerIconID = req.params.playerIconID
-   const errorToSearchImage = `${__dirname}/assets/img/error-img.png`
+   const errorToSearchImage = `${__dirname}/assets/${LATEST_PATCH}/img/error-img.png`
 
    if (!playerIconID) {
       return res.sendFile(errorToSearchImage)
@@ -32,7 +54,7 @@ app.get(`/playerIcon/:playerIconID`, (req, res) => {
 
    const imagePath = `${__dirname}/assets/${LATEST_PATCH}/img/profileicon/${playerIconID}.png`
    if (fs.existsSync(imagePath)) {
-      res.sendFile(imagePath)
+      return res.sendFile(imagePath)
    } else {
       return res.sendFile(errorToSearchImage)
    }
@@ -40,19 +62,37 @@ app.get(`/playerIcon/:playerIconID`, (req, res) => {
 
 //Rota para conseguir icone do elo
 app.get(`/elo/:eloName`, (req, res) => {
+   const errorToSearchImage = `${__dirname}/assets/${LATEST_PATCH}/img/error-img.png`
    const eloName = req.params.eloName
-   const errorToSearchImage = `${__dirname}/assets/img/error-img.png`
+
    if (!eloName) {
       return res.sendFile(errorToSearchImage)
    }
-   for (let searchElo in language[0].ranked.tier) {
-      if (language[0].ranked.tier[searchElo].translate === eloName) {
-         const imagePath = `${__dirname}/assets/${LATEST_PATCH}/img/elo/${searchElo}.png`
-         console.log(searchElo + ' ' + imagePath)
+   const searchEloImgJSON = require('./assets/api-json/searchEloImg.json')
+   for(let key in searchEloImgJSON){
+     if(searchEloImgJSON[key].name == eloName){
+      const imagePath = `${__dirname}/assets/${LATEST_PATCH}/img/elo/${key}.png`
+      return res.sendFile(imagePath)
+     }
+   }
+   
+   return res.sendFile(errorToSearchImage)
+})
+//Rota para conseguir icone dos talentos
+app.get(`/talentIcon/:idTalent`, (req,res) =>{
+   const idTalent = req.params.idTalent
+   const errorToSearchImage = `${__dirname}/assets/${LATEST_PATCH}/img/error-img.png`
+   if(!idTalent){
+      return res.sendFile(errorToSearchImage)
+   }
+   const searchTalentImg = require('./assets/api-json/searchTalentImg.json')
+   for(let key in searchTalentImg){
+      if(searchTalentImg[key].key == idTalent){
+         const imagePath = `${__dirname}/assets/${LATEST_PATCH}/img/summoner-talents/${searchTalentImg[key].name}.webp`
          return res.sendFile(imagePath)
       }
    }
-  
+   return res.sendFile(errorToSearchImage)
 })
 
 app.get('/user/:gameName/:tagLine/:regionValue', async (req, res) => {
@@ -136,7 +176,7 @@ app.get('/user/:gameName/:tagLine/:regionValue', async (req, res) => {
    async function getUserMatchs() {
       try {
          //Essa variavel define quantas partidas serão buscadas.
-         let matchsCount = 3
+         let matchsCount = 20
          //Consultando os id do json para indentificar o tipo da partida ex: Ranqueada, normal...
          const queueIdJson = require('./assets/api-json/queueId.json')
          const response = await axios.get(`https://americas.api.riotgames.com/lol/match/v5/matches/by-puuid/${userData.puuid}/ids?count=${matchsCount}`, {
@@ -154,9 +194,8 @@ app.get('/user/:gameName/:tagLine/:regionValue', async (req, res) => {
                   }
                });
 
-
                for (let key in matchResponse.data.info.participants) {
-                  
+
                   if (userData.puuid === matchResponse.data.info.participants[key].puuid) {
                      matchResponse.data.info.win = matchResponse.data.info.participants[key].win
                   }
@@ -189,7 +228,6 @@ app.get('/user/:gameName/:tagLine/:regionValue', async (req, res) => {
                "X-Riot-Token": RIOT_API_KEY
             }
          })
-         //console.log(response.data)
          response.data.forEach(item => {
             if (item.queueType == 'RANKED_SOLO_5x5') {
                userData.ranked.solo_duo = {
@@ -211,28 +249,18 @@ app.get('/user/:gameName/:tagLine/:regionValue', async (req, res) => {
             }
          });
 
-         if(userData.ranked.flex.tier == 0){
+         if (userData.ranked.flex.tier == 0) {
             userData.ranked.flex.tier = 'Unranked'
          }
-         if(userData.ranked.solo_duo.tier == 0){
+         if (userData.ranked.solo_duo.tier == 0) {
             userData.ranked.solo_duo.tier = 'Unranked'
          }
-         translateData()
       } catch (error) {
          return res.status(400).send('Erro ao consultar elo do jogador' + error)
       }
    }
 
-   function translateData() {
-      for (let searchElo in language[0].ranked.tier) {
-         if (language[0].ranked.tier[searchElo].tier_elo_name === userData.ranked.solo_duo.tier) {
-            userData.ranked.solo_duo.tier = language[0].ranked.tier[searchElo].translate
-         }
-         if (language[0].ranked.tier[searchElo].tier_elo_name === userData.ranked.flex.tier) {
-            userData.ranked.flex.tier = language[0].ranked.tier[searchElo].translate
-         }
-      }
-   }
+
    return res.send(userData)
 });
 

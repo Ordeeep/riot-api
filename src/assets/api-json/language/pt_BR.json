@@ -1,0 +1,62 @@
+[
+   {
+      "queues": [
+         {
+            "queueId": 420,
+            "name": "Reanqueada solo duo"
+         },
+         {
+            "queueId": 440,
+            "name": "Reanqueada flex"
+         }
+      ],
+      "ranked": {
+         "tier": [
+            {
+               "tier_elo_name":"IRON",
+               "translate": "Ferro"
+            },
+            {
+               "tier_elo_name":"BRONZE",
+               "translate": "Bronze"
+            },
+            {
+               "tier_elo_name":"SILVER",
+               "translate": "Prata"
+            },
+            {
+               "tier_elo_name":"GOLD",
+               "translate": "Ouro"
+            },
+            {
+               "tier_elo_name":"PLATINUM",
+               "translate": "Patina"
+            },
+            {
+               "tier_elo_name":"EMERALD",
+               "translate": "Esmeralda"
+            },
+            {
+               "tier_elo_name":"DIAMOND",
+               "translate": "Diamante"
+            },
+            {
+               "tier_elo_name":"MASTER",
+               "translate": "Mestre"
+            },
+            {
+               "tier_elo_name":"GRANDMASTER",
+               "translate": "Grão-mestre"
+            },
+            {
+               "tier_elo_name":"CHALLENGER",
+               "translate": "Desafiante"
+            },
+            {
+               "tier_elo_name":"Unranked",
+               "translate": "Sem ranque"
+            }
+         ]
+      }
+   }
+]

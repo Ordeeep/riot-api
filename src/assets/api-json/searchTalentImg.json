@@ -1,0 +1,82 @@
+[
+   {
+      "id": "SummonerBarrier",
+      "name": "Barrier",
+      "key": 21
+   },
+   {
+      "id": "SummonerBoost",
+      "name": "Cleanse",
+      "key": 1
+   },
+   {
+      "id": "SummonerCherryFlash",
+      "name": "Flash",
+      "key": 2202
+   },
+   {
+      "id": "SummonerDot",
+      "name": "Ignite",
+      "key": 14
+   },
+   {
+      "id": "SummonerExhaust",
+      "name": "Exhaust",
+      "key": 3
+   },
+   {
+      "id": "SummonerFlash",
+      "name": "Flash",
+      "key": 4
+   },
+   {
+      "id": "SummonerHaste",
+      "name": "Ghost",
+      "key": 6
+   },
+   {
+      "id": "SummonerHeal",
+      "name": "Heal",
+      "key": 7
+   },
+   {
+      "id": "SummonerMana",
+      "name": "Clarity",
+      "key": 13
+   },
+   {
+      "id": "SummonerPoroRecall",
+      "name": "To the King!",
+      "key": 30
+   },
+   {
+      "id": "SummonerPoroThrow",
+      "name": "Poro Toss",
+      "key": 31
+   },
+   {
+      "id": "SummonerSmite",
+      "name": "Smite",
+      "key": 11
+   },
+   {
+      "id": "SummonerSnowURFSnowball_Mark",
+      "name": "Mark",
+      "key": 39
+   },
+   {
+      "id": "SummonerSnowball",
+      "name": "Mark",
+      "key": 32
+   },
+   {
+      "id": "SummonerTeleport",
+      "name": "Teleport",
+      "key": 12
+   },
+   {
+      "id": "Summoner_UltBookPlaceholder",
+      "name": "Placeholder",
+      "key": 54
+   }
+]

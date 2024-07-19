@@ -1,0 +1,46 @@
+[
+   {
+      "id": 0,
+      "name": "IRON"
+   },
+   {
+      "id": 1,
+      "name": "BRONZE"
+   },
+   {
+      "id": 2,
+      "name": "SILVER"
+   },
+   {
+      "id": 3,
+      "name": "GOLD"
+   },
+   {
+      "id": 4,
+      "name": "PLATINUM"
+   },
+   {
+      "id": 5,
+      "name": "EMERALD"
+   },
+   {
+      "id": 6,
+      "name": "DIAMOND"
+   },
+   {
+      "id": 7,
+      "name": "MASTER"
+   },
+   {
+      "id": 8,
+      "name": "GRANDMASTER"
+   },
+   {
+      "id": 9,
+      "name": "CHALLENGER"
+   },
+   {
+      "id": 10,
+      "name": "Unranked"
+   }
+]
