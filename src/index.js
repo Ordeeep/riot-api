@@ -127,7 +127,16 @@ app.get('/user/:gameName/:tagLine/:regionValue', async (req, res) => {
          }
       }
    };
-   await getUserPUUID()
+   try{
+      await getUserPUUID();
+      await getUserSummoner();
+      await getUserMatchs();
+      await getUserRank();
+      return res.send(userData);
+   }catch(error){
+      console.log(error)
+      return res.status(500).send("Erro ao consultar dados do usuário, pedimos que teste novamente mais tarde.");
+   }
 
    async function getUserPUUID() {
       try {
@@ -146,8 +155,7 @@ app.get('/user/:gameName/:tagLine/:regionValue', async (req, res) => {
          }
          await getUserSummoner()
       } catch (error) {
-         console.log(error)
-         return res.status(500).send('Erro ao consultar o PUUID do jogador.');
+         throw new Error('Erro ao consultar o PUUID do jogador.');
       }
    }
 
@@ -165,11 +173,9 @@ app.get('/user/:gameName/:tagLine/:regionValue', async (req, res) => {
             revisionDate: response.data.revisionDate,
             summonerLevel: response.data.summonerLevel,
          }
-
-         await getUserMatchs()
+         
       } catch (error) {
-         console.log(error)
-         return res.status(500).send('Erro ao consultar os dados do jogador.')
+         throw new Error('Erro ao consultar os dados do jogador.');
       }
    }
 
@@ -179,7 +185,7 @@ app.get('/user/:gameName/:tagLine/:regionValue', async (req, res) => {
          let matchsCount = 20
          //Consultando os id do json para indentificar o tipo da partida ex: Ranqueada, normal...
          const queueIdJson = require('./assets/api-json/queueId.json')
-         const response = await axios.get(`https://americas.api.riotgames.com/lol/match/v5/matches/by-puuid/${userData.puuid}/ids?count=${matchsCount}`, {
+         const response = await axios.get(`https://americas.api.riotgames.com/lol/match/v5/matches/by-puuid/${userData.puuid}/ids?count=${matchsCount}&queue=420`, {
             headers: {
                "X-Riot-Token": RIOT_API_KEY
             }
@@ -204,7 +210,7 @@ app.get('/user/:gameName/:tagLine/:regionValue', async (req, res) => {
                userData.history.matchs.push(matchResponse.data)
 
             } catch (error) {
-               console.error(`Erro ao obter dados da partida ${item}:`, error);
+               throw new Error(`Erro ao obter dados da partida ${item}:`, error);
             }
          }
 
@@ -216,11 +222,9 @@ app.get('/user/:gameName/:tagLine/:regionValue', async (req, res) => {
             }
          })
       } catch (error) {
-         return res.status(500).send('Erro ao consultar as partidas do jogador.')
+         throw new Error('Erro ao consultar as partidas do jogador.');
       }
    }
-   await getUserRank()
-
    async function getUserRank() {
       try {
          const response = await axios.get(`https://${regionValue}.api.riotgames.com/lol/league/v4/entries/by-summoner/${userData.id}`, {
@@ -256,12 +260,9 @@ app.get('/user/:gameName/:tagLine/:regionValue', async (req, res) => {
             userData.ranked.solo_duo.tier = 'Unranked'
          }
       } catch (error) {
-         return res.status(400).send('Erro ao consultar elo do jogador' + error)
+         throw new Error('Erro ao consultar elo do jogador' + error)
       }
    }
-
-
-   return res.send(userData)
 });
 
 app.listen(PORT, (error) => {
