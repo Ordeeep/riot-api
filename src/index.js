@@ -2,7 +2,6 @@ const express = require('express');
 const axios = require('axios')
 const cors = require('cors');
 const app = express();
-const language = require('./assets/api-json/language/pt_BR.json')
 
 const fs = require('fs')
 
@@ -182,7 +181,7 @@ app.get('/user/:gameName/:tagLine/:regionValue', async (req, res) => {
    async function getUserMatchs() {
       try {
          //Essa variavel define quantas partidas serão buscadas.
-         let matchsCount = 20
+         let matchsCount = 10
          //Consultando os id do json para indentificar o tipo da partida ex: Ranqueada, normal...
          const queueIdJson = require('./assets/api-json/queueId.json')
          const response = await axios.get(`https://americas.api.riotgames.com/lol/match/v5/matches/by-puuid/${userData.puuid}/ids?count=${matchsCount}&queue=420`, {
@@ -190,6 +189,7 @@ app.get('/user/:gameName/:tagLine/:regionValue', async (req, res) => {
                "X-Riot-Token": RIOT_API_KEY
             }
          })
+         console.log("Começou a buscar as partidas")
          //Procurando as 20 partidas que estão no response e adicionando no objeto userData
          for (const item of response.data) {
             try {
@@ -213,6 +213,7 @@ app.get('/user/:gameName/:tagLine/:regionValue', async (req, res) => {
                throw new Error(`Erro ao obter dados da partida ${item}:`, error);
             }
          }
+         console.log("Terminou de buscar")
 
          userData.history.matchs.forEach(item => {
             for (let key in queueIdJson) {
