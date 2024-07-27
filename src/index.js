@@ -13,6 +13,43 @@ const LATEST_PATCH = process.env.LATEST_PATCH //Patch do jogo ex: 14.14.1
 const PORT = process.env.PORT; //Porta que irá rodar a aplicação
 const RIOT_API_KEY = process.env.RIOT_API_KEY; //Api key que a riot disponibiliza.
 
+
+app.get('/runeSecondaryIcon/:runeID', (req, res) => {
+   const rune = req.params.runeID
+   const errorToSearchImage = `${__dirname}/assets/${LATEST_PATCH}/img/error-img.png`
+
+   if (!rune) {
+      return res.sendFile(errorToSearchImage)
+   }
+   const RUNE_JSON = require(`${__dirname}/assets/api-json/searchRuneImg.json`)
+   for (let firstStyle in RUNE_JSON) {
+      if (RUNE_JSON[firstStyle].id == rune) {
+         const imagePath = `${__dirname}/assets/${LATEST_PATCH}/img/perk-images/styles/${RUNE_JSON[firstStyle].key}.png`
+         return res.sendFile(imagePath)
+      }
+   }
+   return res.sendFile(errorToSearchImage)
+
+})
+
+app.get('/runeIcon/:runeID', (req, res) => {
+   const rune = req.params.runeID
+   const errorToSearchImage = `${__dirname}/assets/${LATEST_PATCH}/img/error-img.png`
+
+   if (!rune) {
+      return res.sendFile(errorToSearchImage)
+   }
+   const RUNE_JSON = require(`${__dirname}/assets/api-json/searchRuneImg.json`)
+   for (let firstStyle in RUNE_JSON) {
+      for (let runeID in RUNE_JSON[firstStyle].runes) {
+         if (RUNE_JSON[firstStyle].runes[runeID].id == rune) {
+            const imagePath = `${__dirname}/assets/${LATEST_PATCH}/img/perk-images/styles/${RUNE_JSON[firstStyle].key}/${RUNE_JSON[firstStyle].runes[runeID].key}/${RUNE_JSON[firstStyle].runes[runeID].key}.png`
+            return res.sendFile(imagePath)
+         }
+      }
+   }
+})
+
 app.get('/itemIcon/:itemIconID', (req, res) => {
    const itemIconID = req.params.itemIconID
    const errorToSearchImage = `${__dirname}/assets/${LATEST_PATCH}/img/error-img.png`
@@ -20,9 +57,9 @@ app.get('/itemIcon/:itemIconID', (req, res) => {
       return res.sendFile(errorToSearchImage)
    }
    const imagePath = `${__dirname}/assets/${LATEST_PATCH}/img/item/${itemIconID}.png`
-   if(fs.existsSync(imagePath)){
+   if (fs.existsSync(imagePath)) {
       return res.sendFile(imagePath)
-   }else{
+   } else {
       return res.sendFile(errorToSearchImage)
    }
 })
@@ -35,9 +72,9 @@ app.get('/championIcon/:championName', (req, res) => {
       return res.sendFile(errorToSearchImage)
    }
    const imagePath = `${__dirname}/assets/${LATEST_PATCH}/img/champion/${championName}.png`
-   if(fs.existsSync(imagePath)){
+   if (fs.existsSync(imagePath)) {
       return res.sendFile(imagePath)
-   }else{
+   } else {
       return res.sendFile(errorToSearchImage)
    }
 })
@@ -68,25 +105,25 @@ app.get(`/elo/:eloName`, (req, res) => {
       return res.sendFile(errorToSearchImage)
    }
    const searchEloImgJSON = require('./assets/api-json/searchEloImg.json')
-   for(let key in searchEloImgJSON){
-     if(searchEloImgJSON[key].name == eloName){
-      const imagePath = `${__dirname}/assets/${LATEST_PATCH}/img/elo/${key}.png`
-      return res.sendFile(imagePath)
-     }
+   for (let key in searchEloImgJSON) {
+      if (searchEloImgJSON[key].name == eloName) {
+         const imagePath = `${__dirname}/assets/${LATEST_PATCH}/img/elo/${key}.png`
+         return res.sendFile(imagePath)
+      }
    }
-   
+
    return res.sendFile(errorToSearchImage)
 })
 //Rota para conseguir icone dos talentos
-app.get(`/talentIcon/:idTalent`, (req,res) =>{
+app.get(`/talentIcon/:idTalent`, (req, res) => {
    const idTalent = req.params.idTalent
    const errorToSearchImage = `${__dirname}/assets/${LATEST_PATCH}/img/error-img.png`
-   if(!idTalent){
+   if (!idTalent) {
       return res.sendFile(errorToSearchImage)
    }
    const searchTalentImg = require('./assets/api-json/searchTalentImg.json')
-   for(let key in searchTalentImg){
-      if(searchTalentImg[key].key == idTalent){
+   for (let key in searchTalentImg) {
+      if (searchTalentImg[key].key == idTalent) {
          const imagePath = `${__dirname}/assets/${LATEST_PATCH}/img/summoner-talents/${searchTalentImg[key].name}.webp`
          return res.sendFile(imagePath)
       }
@@ -126,13 +163,13 @@ app.get('/user/:gameName/:tagLine/:regionValue', async (req, res) => {
          }
       }
    };
-   try{
+   try {
       await getUserPUUID();
       await getUserSummoner();
       await getUserMatchs();
       await getUserRank();
       return res.send(userData);
-   }catch(error){
+   } catch (error) {
       console.log(error)
       return res.status(500).send("Erro ao consultar dados do usuário, pedimos que teste novamente mais tarde.");
    }
@@ -172,7 +209,7 @@ app.get('/user/:gameName/:tagLine/:regionValue', async (req, res) => {
             revisionDate: response.data.revisionDate,
             summonerLevel: response.data.summonerLevel,
          }
-         
+
       } catch (error) {
          throw new Error('Erro ao consultar os dados do jogador.');
       }
@@ -181,7 +218,7 @@ app.get('/user/:gameName/:tagLine/:regionValue', async (req, res) => {
    async function getUserMatchs() {
       try {
          //Essa variavel define quantas partidas serão buscadas.
-         let matchsCount = 10
+         let matchsCount = 20
          //Consultando os id do json para indentificar o tipo da partida ex: Ranqueada, normal...
          const queueIdJson = require('./assets/api-json/queueId.json')
          const response = await axios.get(`https://americas.api.riotgames.com/lol/match/v5/matches/by-puuid/${userData.puuid}/ids?count=${matchsCount}&queue=420`, {
