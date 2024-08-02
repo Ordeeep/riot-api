@@ -5,14 +5,13 @@ const app = express();
 
 const fs = require('fs')
 
-app.use(cors());
+app.use(cors());  
 require('dotenv').config();
 
 //Declando váriveis de ambiente.
 const LATEST_PATCH = process.env.LATEST_PATCH //Patch do jogo ex: 14.14.1
 const PORT = process.env.PORT; //Porta que irá rodar a aplicação
 const RIOT_API_KEY = process.env.RIOT_API_KEY; //Api key que a riot disponibiliza.
-
 
 app.get('/runeSecondaryIcon/:runeID', (req, res) => {
    const rune = req.params.runeID
@@ -189,7 +188,6 @@ app.get('/user/:gameName/:tagLine/:regionValue', async (req, res) => {
             tagLine: response.data.tagLine,
 
          }
-         await getUserSummoner()
       } catch (error) {
          throw new Error('Erro ao consultar o PUUID do jogador.');
       }
@@ -218,7 +216,7 @@ app.get('/user/:gameName/:tagLine/:regionValue', async (req, res) => {
    async function getUserMatchs() {
       try {
          //Essa variavel define quantas partidas serão buscadas.
-         let matchsCount = 10
+         let matchsCount = 1
          //Consultando os id do json para indentificar o tipo da partida ex: Ranqueada, normal...
          const queueIdJson = require('./assets/api-json/queueId.json')
          const response = await axios.get(`https://americas.api.riotgames.com/lol/match/v5/matches/by-puuid/${userData.puuid}/ids?count=${matchsCount}&queue=420`, {
@@ -236,9 +234,7 @@ app.get('/user/:gameName/:tagLine/:regionValue', async (req, res) => {
                      "X-Riot-Token": RIOT_API_KEY
                   }
                });
-
                for (let key in matchResponse.data.info.participants) {
-
                   if (userData.puuid === matchResponse.data.info.participants[key].puuid) {
                      matchResponse.data.info.win = matchResponse.data.info.participants[key].win
                   }
