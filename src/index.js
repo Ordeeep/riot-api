@@ -5,9 +5,8 @@ const app = express();
 
 const fs = require('fs')
 
-app.use(cors());  
+app.use(cors());
 require('dotenv').config();
-
 //Declando váriveis de ambiente.
 const LATEST_PATCH = process.env.LATEST_PATCH //Patch do jogo ex: 14.14.1
 const PORT = process.env.PORT; //Porta que irá rodar a aplicação
@@ -160,13 +159,16 @@ app.get('/user/:gameName/:tagLine/:regionValue', async (req, res) => {
             wins: 0,
             losses: 0,
          }
-      }
+      },
+      champion_mastery: []
+
    };
    try {
       await getUserPUUID();
       await getUserSummoner();
       await getUserMatchs();
       await getUserRank();
+      await getUserMastery();
       return res.send(userData);
    } catch (error) {
       console.log(error)
@@ -216,7 +218,7 @@ app.get('/user/:gameName/:tagLine/:regionValue', async (req, res) => {
    async function getUserMatchs() {
       try {
          //Essa variavel define quantas partidas serão buscadas.
-         let matchsCount = 1
+         let matchsCount = 20
          //Consultando os id do json para indentificar o tipo da partida ex: Ranqueada, normal...
          const queueIdJson = require('./assets/api-json/queueId.json')
          const response = await axios.get(`https://americas.api.riotgames.com/lol/match/v5/matches/by-puuid/${userData.puuid}/ids?count=${matchsCount}&queue=420`, {
@@ -297,10 +299,35 @@ app.get('/user/:gameName/:tagLine/:regionValue', async (req, res) => {
          throw new Error('Erro ao consultar elo do jogador' + error)
       }
    }
-});
 
+   async function getUserMastery() {
+      const championsData = require('./assets/api-json/championId.json')
+      try {
+         const response = await axios.get(`https://${regionValue}.api.riotgames.com/lol/champion-mastery/v4/champion-masteries/by-puuid/${userData.puuid}`, {
+            headers: {
+               "X-Riot-Token": RIOT_API_KEY
+            }
+         })
+         userData.champion_mastery.push(response.data)
+      } catch (error) {
+         console.log(error)
+      }
+
+      for (let key in userData.champion_mastery[0]) {
+         for (let championName in championsData.data) {
+            if (userData.champion_mastery[0][key].championId == championsData.data[championName].key) {
+               //console.log(`${championName} : ${userData.champion_mastery[0][key].championLevel}`)
+               userData.champion_mastery[0][key] = {
+                  ...userData.champion_mastery[0][key],
+                  championName: championName
+               }
+            }
+         }
+      }
+   }
+});
 app.listen(PORT, (error) => {
    if (error) {
       console.log(error)
    } console.log(`Server is running: http://localhost:${PORT}`)
-})
+}) 
